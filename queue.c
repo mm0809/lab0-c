@@ -25,7 +25,20 @@ struct list_head *q_new()
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    if (!l)
+        return;
+
+    // iterate over the list entries and remove it
+    element_t *entry, *safe;
+    list_for_each_entry_safe (entry, safe, l, list) {
+        free(entry->value);
+        free(entry);
+    }
+    free(l);
+
+}
 
 /*
  * Attempt to insert element at head of queue.
@@ -36,6 +49,24 @@ void q_free(struct list_head *l) {}
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+
+    // allocate memory for element_t
+    element_t *new_entry = malloc(sizeof(element_t));
+    if (!new_entry)
+        return false;
+
+    // allocate memory for 'value' in element_t
+    new_entry->value = malloc((strlen(s)) + 1);
+    if (!(new_entry->value)) {
+        free(new_entry);
+        return false;
+    }
+    strncpy(new_entry->value, s, strlen(s) + 1);
+
+    list_add(&new_entry->list, head);
+
     return true;
 }
 
@@ -48,6 +79,24 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+
+    // allocate memory for element_t
+    element_t *new_entry = malloc(sizeof(element_t));
+    if (!new_entry)
+        return false;
+
+    // allocate memory for 'value' in element_t
+    new_entry->value = malloc((strlen(s)) + 1);
+    if (!(new_entry->value)) {
+        free(new_entry);
+        return false;
+    }
+    strncpy(new_entry->value, s, strlen(s) + 1);
+
+    list_add_tail(&new_entry->list, head);
+
     return true;
 }
 
