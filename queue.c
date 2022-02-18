@@ -278,8 +278,9 @@ void q_reverse(struct list_head *head)
     if (!head || list_empty(head) || list_is_singular(head))
         return;
 
-    for (struct list_head *first = head->next, *new_first = first->next;
-         first->next != head; new_first = first->next) {
+    const struct list_head *const first = head->next;
+    for (struct list_head *new_first = first->next; first->next != head;
+         new_first = first->next) {
         list_del(new_first);
         list_add(new_first, head);
     }
