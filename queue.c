@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdint.h>
+
 #include "harness.h"
 #include "queue.h"
 
@@ -233,8 +235,7 @@ bool q_delete_dup(struct list_head *head)
         if (!last_value)
             last_value = entry->value;
         else {
-            if (strncmp(last_value, entry->value, strlen(last_value) + 1) ==
-                0) {
+            if (strcmp(last_value, entry->value) == 0) {
                 list_del(&entry->list);
                 q_release_element(entry);
             } else {
@@ -286,9 +287,69 @@ void q_reverse(struct list_head *head)
     }
 }
 
+struct list_head *mergesort(struct list_head *head);
+struct list_head *merge(struct list_head *l1, struct list_head *l2);
 /*
  * Sort elements of queue in ascending order
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    // break the structure of circular linked list
+    head->prev->next = NULL;
+
+    head->next = mergesort(head->next);
+
+    struct list_head *prev = head, *cur = head->next;
+    while (cur->next != NULL) {
+        cur->prev = prev;
+        prev = cur;
+        cur = cur->next;
+    }
+    cur->prev = prev;
+    cur->next = head;
+    head->prev = cur;
+}
+
+struct list_head *mergesort(struct list_head *head)
+{
+    if (!head || !head->next)
+        return head;
+
+    struct list_head *slow = head, *fast = head->next;
+    while (fast && fast->next) {
+        fast = fast->next->next;
+        slow = slow->next;
+    }
+    fast = slow->next;
+    slow->next = NULL;
+    slow = head;
+
+    struct list_head *l1 = mergesort(slow);
+    struct list_head *l2 = mergesort(fast);
+
+    return merge(l1, l2);
+}
+
+struct list_head *merge(struct list_head *l1, struct list_head *l2)
+{
+    struct list_head *nl = NULL, **ptr = &nl;
+
+    while (l1 && l2) {
+        if (strcmp(list_entry(l1, element_t, list)->value,
+                   list_entry(l2, element_t, list)->value) < 0) {
+            *ptr = l1;
+            l1 = l1->next;
+        } else {
+            *ptr = l2;
+            l2 = l2->next;
+        }
+        ptr = &(*ptr)->next;
+    }
+    *ptr = (struct list_head *) ((uintptr_t) l1 | (uintptr_t) l2);
+    return nl;
+}
