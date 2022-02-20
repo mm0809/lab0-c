@@ -225,18 +225,14 @@ bool q_delete_dup(struct list_head *head)
     if (list_empty(head))
         return true;
 
-    const char *last_value = NULL;
+    const char *last_value = "";
     element_t *entry, *safe;
     list_for_each_entry_safe (entry, safe, head, list) {
-        if (!last_value)
+        if (strcmp(last_value, entry->value) == 0) {
+            list_del(&entry->list);
+            q_release_element(entry);
+        } else {
             last_value = entry->value;
-        else {
-            if (strcmp(last_value, entry->value) == 0) {
-                list_del(&entry->list);
-                q_release_element(entry);
-            } else {
-                last_value = entry->value;
-            }
         }
     }
 
