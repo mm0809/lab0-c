@@ -296,15 +296,13 @@ void q_sort(struct list_head *head)
 
     head->next = mergesort(head->next);
 
+    // circular linked list reconstuct
     struct list_head *prev = head, *cur = head->next;
-    while (cur->next != NULL) {
+    for (; cur != NULL; prev = cur, cur = cur->next) {
         cur->prev = prev;
-        prev = cur;
-        cur = cur->next;
     }
-    cur->prev = prev;
-    cur->next = head;
-    head->prev = cur;
+    prev->next = head;
+    head->prev = prev;
 }
 
 struct list_head *mergesort(struct list_head *head)
