@@ -76,6 +76,34 @@ static const char charset[] = "abcdefghijklmnopqrstuvwxyz";
 /* Forward declarations */
 static bool show_queue(int vlevel);
 
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    bool ok = true;
+    if (!l_meta.l)
+        report(3, "Warning: Calling shuffle on null queue");
+    error_check();
+
+    size_t len = l_meta.size;
+    for (; len > 0; len--) {
+        // get an random index and move the target to tail
+        size_t index = rand() % len;
+        struct list_head *tar = l_meta.l->next;
+        while (index--)
+            tar = tar->next;
+
+        list_del(tar);
+        list_add_tail(tar, l_meta.l);
+    }
+
+    show_queue(3);
+    return ok && !error_check();
+}
+
 static bool do_free(int argc, char *argv[])
 {
     if (argc != 1) {
@@ -795,6 +823,7 @@ static void console_init()
         dedup, "                | Delete all nodes that have duplicate string");
     ADD_COMMAND(swap,
                 "                | Swap every two adjacent nodes in queue");
+    ADD_COMMAND(shuffle, "                | Shuffle");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
